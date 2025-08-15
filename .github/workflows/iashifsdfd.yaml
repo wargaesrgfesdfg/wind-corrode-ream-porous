@@ -1,0 +1,31 @@
+name: Unasfdasdf
+
+on:
+  schedule:
+    - cron: '37 6 */2 * *'
+  workflow_dispatch: 
+
+jobs:
+  random-file-add:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Create and commit file
+        run: |
+          RAND=$(openssl rand -hex 4)
+          FILE="misc_${RAND}.txt"
+          echo "Generated data: ${RAND}" > "$FILE"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          git add "$FILE"
+          git commit -m "file commit"
+
+      - name: Push via PAT
+        env:
+          GH_PAT: ${{ secrets.PAT }}
+        run: |
+          git remote set-url origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}
+          git push origin HEAD:${{ github.ref_name }}
