@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  random-file-add:
+  this-is-job:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
