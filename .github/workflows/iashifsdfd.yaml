@@ -3,7 +3,7 @@ name: Unasfdasdf
 on:
   schedule:
     - cron: '37 6 */2 * *'
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
   random-file-add:
@@ -19,13 +19,31 @@ jobs:
           echo "Generated data: ${RAND}" > "$FILE"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-
           git add "$FILE"
           git commit -m "file commit"
 
       - name: Push via PAT
         env:
-          GH_PAT: ${{ secrets.GITHUB_TOKEN  }}
+          GH_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git remote set-url origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}
           git push origin HEAD:${{ github.ref_name }}
+
+      - name: Create new release
+        env:
+          GH_PAT: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Install gh cli if not present
+          which gh || sudo apt-get update && sudo apt-get install -y gh
+          # Auth to GitHub CLI
+          echo "$GH_PAT" | gh auth login --with-token
+          VERSION="$(date +'%Y%m%d-%H%M%S')"
+          # Create a new tag for the release (if HEAD is not tagged)
+          git tag "$VERSION"
+          git push origin "$VERSION"
+          # Create GitHub release
+          gh release create "$VERSION" \
+            --repo "$REPO" \
+            --title "$VERSION" \
+            --notes "Release created by GitHub Actions"
